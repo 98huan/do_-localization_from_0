@@ -16,9 +16,9 @@ GNSSSubscriber::GNSSSubscriber(ros::NodeHandle& nh, std::string topic_name, size
 void GNSSSubscriber::msg_callback(const sensor_msgs::NavSatFixConstPtr& nav_sat_fix_ptr) {
     GNSSData gnss_data;
     gnss_data.time = nav_sat_fix_ptr->header.stamp.toSec();
-    gnss_data.latitude = nav_sat_fix_ptr->latitude;
-    gnss_data.longitude = nav_sat_fix_ptr->longitude;
-    gnss_data.altitude = nav_sat_fix_ptr->longitude;
+    gnss_data.latitude = nav_sat_fix_ptr->latitude;     //纬度
+    gnss_data.longitude = nav_sat_fix_ptr->longitude;   //经度
+    gnss_data.altitude = nav_sat_fix_ptr->altitude;
     gnss_data.status = nav_sat_fix_ptr->status.status;
     gnss_data.service = nav_sat_fix_ptr->status.service;
 

@@ -15,10 +15,12 @@ TFListener::TFListener(ros::NodeHandle& nh, std::string base_frame_id, std::stri
 bool TFListener::LookupData(Eigen::Matrix4f& transform_matrix) {
     try {
         tf::StampedTransform transform;
+        //ros::Time(0)表示使用缓冲中最新的tf数据, 监听child_frame到base_frame的变换，即以base_frame为参考系时的child_frame的位置和方向
         listener_.lookupTransform(base_frame_id_, child_frame_id_, ros::Time(0), transform);
         TransformToMatrix(transform, transform_matrix);
         return true;
     } catch (tf::TransformException &ex) {
+        ROS_ERROR("%s",ex.what());
         return false;
     }
 }

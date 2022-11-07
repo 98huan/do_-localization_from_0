@@ -24,8 +24,8 @@ void CloudSubscriber::msg_callback(const sensor_msgs::PointCloud2::ConstPtr& clo
 
 void CloudSubscriber::ParseData(std::deque<CloudData>& cloud_data_buff) {
     if (new_cloud_data_.size() > 0) {
-        cloud_data_buff.insert(cloud_data_buff.end(), new_cloud_data_.begin(), new_cloud_data_.end());
-        new_cloud_data_.clear();
+        cloud_data_buff.insert(cloud_data_buff.end(), new_cloud_data_.begin(), new_cloud_data_.end());  //把new_cloud_data_中的点从前往后尾插到cloud_data_buff
+        new_cloud_data_.clear();    // TODO: 可以用迭代器的方式清空
     }
 }
 } // namespace data_input

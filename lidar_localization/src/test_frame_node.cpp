@@ -14,21 +14,24 @@
 #include "lidar_localization/tf_listener/tf_listener.hpp"
 #include "lidar_localization/publisher/cloud_publisher.hpp"
 #include "lidar_localization/publisher/odometry_publisher.hpp"
-
+#include <Eigen/Dense>
 using namespace lidar_localization;
 
 int main(int argc, char *argv[]) {
     google::InitGoogleLogging(argv[0]);
     FLAGS_log_dir = WORK_SPACE_PATH + "/Log";
     FLAGS_alsologtostderr = 1;
-
+    if (access(FLAGS_log_dir.data(), F_OK) < 0) {
+        LOG_IF(FATAL, (mkdir(FLAGS_log_dir.data(), S_IRWXU) < 0)) << "create folder error: " << FLAGS_log_dir;
+    }
+    
     ros::init(argc, argv, "test_frame_node");
     ros::NodeHandle nh;
 
     std::shared_ptr<CloudSubscriber> cloud_sub_ptr = std::make_shared<CloudSubscriber>(nh, "/kitti/velo/pointcloud", 100000);
     std::shared_ptr<IMUSubscriber> imu_sub_ptr = std::make_shared<IMUSubscriber>(nh, "/kitti/oxts/imu", 1000000);
     std::shared_ptr<GNSSSubscriber> gnss_sub_ptr = std::make_shared<GNSSSubscriber>(nh, "/kitti/oxts/gps/fix", 1000000);
-    std::shared_ptr<TFListener> lidar_to_imu_ptr = std::make_shared<TFListener>(nh, "velo_link", "imu_link");
+    std::shared_ptr<TFListener> lidar_to_imu_ptr = std::make_shared<TFListener>(nh, "imu_link", "velo_link");   //lidar_to_imu
 
     std::shared_ptr<CloudPublisher> cloud_pub_ptr = std::make_shared<CloudPublisher>(nh, "current_scan", 100, "map");
     std::shared_ptr<OdometryPublisher> odom_pub_ptr = std::make_shared<OdometryPublisher>(nh, "lidar_odom", "map", "lidar", 100);
@@ -51,7 +54,7 @@ int main(int argc, char *argv[]) {
         if (!transform_received) {
             if (lidar_to_imu_ptr->LookupData(lidar_to_imu)) {
                 transform_received = true;
-                // LOG(INFO) << "lidar to imu transform matrix is:" << std::endl << lidar_to_imu;
+                LOG(INFO) << "lidar to imu transform matrix is:" << std::endl << lidar_to_imu;
             }
         } else {
             while (cloud_data_buff.size() > 0 && imu_data_buff.size() > 0 && gnss_data_buff.size() > 0) {
@@ -77,11 +80,11 @@ int main(int argc, char *argv[]) {
                         gnss_origin_position_inited = true;
                     }
                     gnss_data.UpdateXYZ();
-                    odometry_matrix(0,3) = gnss_data.local_E;
-                    odometry_matrix(1,3) = gnss_data.local_N;
-                    odometry_matrix(2,3) = gnss_data.local_U;
-                    odometry_matrix.block<3,3>(0,0) = imu_data.GetOrientationMatrix();
-                    odometry_matrix *= lidar_to_imu;
+                    odometry_matrix(0,3) = gnss_data.local_E;   //东 x正方向
+                    odometry_matrix(1,3) = gnss_data.local_N;   //北 y正方向
+                    odometry_matrix(2,3) = gnss_data.local_U;   //天 z正方向
+                    odometry_matrix.block<3,3>(0,0) = imu_data.GetOrientationMatrix();  //imu的旋转矩阵
+                    odometry_matrix *= lidar_to_imu;    //转换到imu坐标系下
 
                     pcl::transformPointCloud(*cloud_data.cloud_ptr, *cloud_data.cloud_ptr, odometry_matrix);
 

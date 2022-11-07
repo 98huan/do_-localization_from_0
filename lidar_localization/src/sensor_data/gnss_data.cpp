@@ -14,7 +14,7 @@ GeographicLib::LocalCartesian lidar_localization::GNSSData::geo_converter;
 namespace lidar_localization {
 
 void GNSSData::InitOriginPosition() {
-    geo_converter.Reset(latitude, longitude, altitude);
+    geo_converter.Reset(latitude, longitude, altitude); //设置原点
     origin_position_inited = true;
 }
 
@@ -22,6 +22,6 @@ void GNSSData::UpdateXYZ() {
     if (!origin_position_inited) {
         LOG(WARNING) << "GeoConverter has not set origin position";
     }
-    geo_converter.Forward(latitude, longitude, altitude, local_E, local_N, local_U);
+    geo_converter.Forward(latitude, longitude, altitude, local_E, local_N, local_U);    //将经纬度转化成xyz
 }
 }
