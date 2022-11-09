@@ -33,3 +33,7 @@
 
 # 
 *.vscode
+lidar_localization/slam_data/*
+
+*.INFO
+*.INFO.*
